@@ -10,7 +10,7 @@ import mountain_img from "./mountain_img.jpg";
 import menu_icon from "./menu_icon.svg";
 import close_icon from "./close_icon.svg";
 import bin_icon from "./bin_icon.svg";
-import logout_icon from "./logout_icon.svg";
+import logout_icon from "./logout_icon.jpg";
 import diamond_icon from "./diamond_icon.svg";
 import gallery_icon from "./gallery_icon.svg";
 

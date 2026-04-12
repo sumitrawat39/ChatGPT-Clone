@@ -156,20 +156,39 @@ className={`${!isMenuOpen && "max-md:-translate-x-full"} flex flex-col h-screen 
   </button>
 
   {/* User */}
-  <div
-    className={`mt-4 flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition ${
-      isDark ? "hover:bg-[#2a2a2a]" : "hover:bg-gray-100"
-    }`}
-  >
+<div
+  className={`mt-4 flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition ${
+    isDark ? "hover:bg-[#2a2a2a]" : "hover:bg-gray-100"
+  }`}
+>
+  {/* Left: User Info */}
+  <div className="flex items-center gap-3">
     <img
       className="w-8 h-8 rounded-full object-cover"
       src={assets.user_icon}
       alt=""
     />
+
     <p className="text-sm">
       {user ? user.name : "Login Your Account"}
     </p>
   </div>
+
+  {/* Right: Logout Icon */}
+  {user && (
+    <img 
+      src={assets.logout_icon}
+      alt="logout"
+      onClick={() => {
+        
+        console.log("Logout clicked");
+      }}
+      className={`w-11 h-11 rounded-2xl cursor-pointer transition ${
+        isDark ? "invert opacity-70" : "opacity-70"
+      } hover:opacity-100`}
+    />
+  )}
+</div>
 
   {/* Close button */}
   <img
