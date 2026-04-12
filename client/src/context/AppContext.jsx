@@ -1,4 +1,4 @@
-import { createContext, use, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { dummyChats, dummyUserData } from "../assets/assets";
 
@@ -15,28 +15,28 @@ export const AppContextProvider = ({ children }) => {
     setUser(dummyUserData);
   };
 
-  const fetchUserChats=async()=>{
+  const fetchUserChats = async () => {
     setChats(dummyChats);
-    selectedChat(dummyChats[0])
-  }
+    setSelectedChat(dummyChats[0]);
+  };
 
-  useEffect(()=>{
-    if(theme==="dark"){
-        document.documentElement.classList.add("dark")
-    }else{
-        document.documentElement.classList.remove("dark")
-
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
     }
-  },[theme])
+    localStorage.setItem("theme",theme)
+  }, [theme]);
 
-  useEffect(()=>{
-    if(user){
-        fetchUserChats();
-    }else{
-        setChats([])
-        setSelectedChat(null)
+  useEffect(() => {
+    if (user) {
+      fetchUserChats();
+    } else {
+      setChats([]);
+      setSelectedChat(null);
     }
-  },[user])
+  }, [user]);
 
   useEffect(() => {
     fetchUser();
