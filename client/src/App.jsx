@@ -6,6 +6,7 @@ import Credits from "./pages/Credits";
 import Community from "./pages/Community";
 import { useAppContext } from "./context/AppContext";
 import { assets } from "./assets/assets";
+import "./assets/prism.css"
 function App() {
   const { theme } = useAppContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
