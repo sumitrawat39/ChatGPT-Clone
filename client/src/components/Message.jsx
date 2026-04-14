@@ -42,7 +42,7 @@ return (
             alt=""
           />
         ) : (
-          <div className="reset-tw break-words">
+          <div className="reset-tw wrap-break-word">
             <Markdown>{message.content}</Markdown>
           </div>
         )}
