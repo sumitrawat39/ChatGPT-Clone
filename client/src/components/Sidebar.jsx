@@ -18,7 +18,7 @@ className={`${!isMenuOpen && "max-md:-translate-x-full"} flex flex-col h-screen 
           : "bg-white border-gray-200 text-black"
       }`}
 >
-{/* Logo */} <img src="/logo.png" alt="logo" className="w-10 mx-auto rounded-xl" />
+<img src="/logo.png" alt="logo" className="w-10 mx-auto rounded-xl" />
 
   {/* New Chat */}
   <button

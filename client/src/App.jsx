@@ -1,15 +1,22 @@
 import React, { useState } from "react";
 import Sidebar from "./components/Sidebar";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import ChatBox from "./components/ChatBox";
 import Credits from "./pages/Credits";
 import Community from "./pages/Community";
 import { useAppContext } from "./context/AppContext";
 import { assets } from "./assets/assets";
-import "./assets/prism.css"
+import "./assets/prism.css";
+import Loading from "./pages/Loading";
+import Login from "./pages/Login";
 function App() {
+  const { user } = useAppContext();
+
   const { theme } = useAppContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  if (pathname === "/loading") return <Loading />;
 
   return (
     <>
@@ -20,23 +27,29 @@ function App() {
           onClick={() => setIsMenuOpen(true)}
         />
       )}
-      <div>
-        <div
-          className={`flex h-screen w-screen transition ${
-            theme === "dark"
-              ? "bg-[#0f0f11] text-white"
-              : "bg-[#f7f7f8] text-black"
-          }`}
-        >
-          {" "}
-          <Sidebar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
-          <Routes>
-            <Route path="/" element={<ChatBox />} />
-            <Route path="/credits" element={<Credits />} />
-            <Route path="/community" element={<Community />} />
-          </Routes>
+      {user ? (
+        <div>
+          <div
+            className={`flex h-screen w-screen transition ${
+              theme === "dark"
+                ? "bg-[#0f0f11] text-white"
+                : "bg-[#f7f7f8] text-black"
+            }`}
+          >
+            {" "}
+            <Sidebar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+            <Routes>
+              <Route path="/" element={<ChatBox />} />
+              <Route path="/credits" element={<Credits />} />
+              <Route path="/community" element={<Community />} />
+            </Routes>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-linear-to-b from-[#242124] to-[#000000] flex items-center justify-center h-screen w-screen">
+          <Login />
+        </div>
+      )}
     </>
   );
 }

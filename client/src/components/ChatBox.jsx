@@ -62,7 +62,7 @@ function ChatBox() {
       {/* Input */}
       <form
         onSubmit={onSubmit}
-        className="mt-4 flex items-center gap-4 border rounded-xl px-3 py-2 shadow-sm bg-white dark:bg-[#1f1f1f] border-gray-200 dark:border-[#2a2a2a]"
+        className="mt-4 flex items-center gap-4 border rounded-4xl px-3 py-2 shadow-sm bg-white dark:bg-[#1f1f1f] border-gray-200 dark:border-[#2a2a2a]"
       >
         <select
           onChange={(e) => setMode(e.target.value)}
