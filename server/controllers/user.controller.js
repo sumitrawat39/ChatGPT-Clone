@@ -22,7 +22,7 @@ export const registerUser = async (req, res) => {
     const user = await User.create({ name, email, password });
 
     const token = generateToken(user._id);
-    res.json({ success: true, token });
+    return res.json({ success: true, token });
   } catch (error) {
     return res.json({ success: false, message: error.message });
   }
@@ -47,7 +47,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// api to get user 
+// api to get user
 export const getUser = async (req, res) => {
   try {
     const user = req.user;
