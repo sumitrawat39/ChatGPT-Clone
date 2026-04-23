@@ -1,12 +1,20 @@
+import axios from "axios";
 import Chat from "../models/chat.model.js";
 import User from "../models/user.model.js";
 import OpenAI from "openai";
+import imagekit from "../config/imagekit.js";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export const textMessageController = async (req, res) => {
   try {
     const userId = req.user._id;
+     if (!req.user || req.user.credits < 1) {
+      return res.json({
+        success: false,
+        message: "You don't have enough credits",
+      });
+    }
     const { chatId, prompt } = req.body;
 
     if (!prompt || !chatId) {
@@ -52,18 +60,28 @@ export const textMessageController = async (req, res) => {
   }
 };
 
-export const imgaeMessageController = async (req, res) => {
+
+export const imageMessageController = async (req, res) => {
   try {
-    const userId = req.res._id;
-    if (req.user.credits < 2) {
+    const userId = req.user._id;
+
+    if (!req.user || req.user.credits < 2) {
       return res.json({
         success: false,
-        message: "You don't have enough credits to use this feature",
+        message: "You don't have enough credits",
       });
     }
 
     const { prompt, chatId, isPublished } = req.body;
+
     const chat = await Chat.findOne({ userId, _id: chatId });
+
+    if (!chat) {
+      return res.json({
+        success: false,
+        message: "Chat not found",
+      });
+    }
 
     chat.messages.push({
       role: "user",
@@ -71,6 +89,40 @@ export const imgaeMessageController = async (req, res) => {
       timestamp: Date.now(),
       isImage: false,
     });
+
+    const encodedPrompt = encodeURIComponent(prompt);
+
+    const generatedImageUrl = `${process.env.IMAGEKIT_URL_ENDPOINT}/ik-genimg-prompt-${encodedPrompt}/gpt/${Date.now()}.png?tr=w-800,h-800`;
+
+    const aiImageResponse = await axios.get(generatedImageUrl, {
+      responseType: "arraybuffer",
+    });
+
+    const base64Image = `data:image/png;base64,${Buffer.from(
+      aiImageResponse.data,
+      "binary",
+    ).toString("base64")}`;
+
+    const uploadResponse = await imagekit.upload({
+      file: base64Image,
+      fileName: `${Date.now()}.png`,
+      folder: "gpt",
+    });
+
+    const reply = {
+      role: "assistant",
+      content: uploadResponse.url,
+      timestamp: Date.now(),
+      isImage: true,
+      isPublished,
+    };
+
+    chat.messages.push(reply);
+    await chat.save();
+
+    await User.updateOne({ _id: userId }, { $inc: { credits: -2 } });
+
+    return res.json({ success: true, reply });
   } catch (error) {
     return res.json({ success: false, message: error.message });
   }
