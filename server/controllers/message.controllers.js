@@ -1,15 +1,13 @@
 import axios from "axios";
 import Chat from "../models/chat.model.js";
 import User from "../models/user.model.js";
-import OpenAI from "openai";
 import imagekit from "../config/imagekit.js";
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+import openai from "../config/openai.js";
 
 export const textMessageController = async (req, res) => {
   try {
     const userId = req.user._id;
-     if (!req.user || req.user.credits < 1) {
+    if (!req.user || req.user.credits < 1) {
       return res.json({
         success: false,
         message: "You don't have enough credits",
@@ -37,7 +35,7 @@ export const textMessageController = async (req, res) => {
     });
 
     const { choices } = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gemini-3-flash-preview",
       messages: [
         { role: "system", content: "You are a helpful assistant." },
         { role: "user", content: prompt },
@@ -54,12 +52,11 @@ export const textMessageController = async (req, res) => {
     await chat.save();
     await User.updateOne({ _id: userId }, { $inc: { credits: -1 } });
 
-    return res.json({ success: true, reply });
+     res.json({ success: true, reply });
   } catch (error) {
     return res.json({ success: false, message: error.message });
   }
 };
-
 
 export const imageMessageController = async (req, res) => {
   try {
