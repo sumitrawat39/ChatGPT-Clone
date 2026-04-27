@@ -56,7 +56,7 @@ export const purchasePlans = async (req, res) => {
   try {
     const { planId } = req.body;
     const userId = req.user._id;
-    const plan = plan.find((plan) => plan._id === planId);
+    const plan = plans.find((plan) => plan._id === planId);
 
     if (!plan) {
       return res.json({ success: false, message: "Inavalid Plan" });
