@@ -47,12 +47,14 @@ export const textMessageController = async (req, res) => {
       timestamp: Date.now(),
       isImage: false,
     };
-
+    if (!chat.name || chat.messages.length === 0) {
+      chat.name = prompt;
+    }
     chat.messages.push(reply);
     await chat.save();
     await User.updateOne({ _id: userId }, { $inc: { credits: -1 } });
 
-     res.json({ success: true, reply });
+    res.json({ success: true, reply });
   } catch (error) {
     return res.json({ success: false, message: error.message });
   }
@@ -79,7 +81,9 @@ export const imageMessageController = async (req, res) => {
         message: "Chat not found",
       });
     }
-
+    if (!chat.name || chat.messages.length === 0) {
+      chat.name = prompt;
+    }
     chat.messages.push({
       role: "user",
       content: prompt,
