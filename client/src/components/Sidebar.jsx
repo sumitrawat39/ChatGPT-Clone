@@ -19,6 +19,7 @@ function Sidebar({ isMenuOpen, setIsMenuOpen }) {
     setToken,
     token,
   } = useAppContext();
+
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const isDark = theme === "dark";
@@ -26,32 +27,39 @@ function Sidebar({ isMenuOpen, setIsMenuOpen }) {
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
-    toast.success("Logged out succrssfully");
+    toast.success("Logged out successfully");
   };
 
+  // ✅ FIXED DELETE FUNCTION
   const deleteChat = async (e, chatId) => {
     try {
       e.stopPropagation();
+
       const isConfirm = window.confirm(
-        "Are you sure you want to delete this chat?",
+        "Are you sure you want to delete this chat?"
       );
-      if (!isConfirm) {
-        return;
-      }
+
+      // ✅ Do nothing if cancelled
+      if (!isConfirm) return;
+
       const { data } = await axios.post(
         "/api/chat/delete",
         { chatId },
-        { headers: { Authorization: `Bearer ${token}` } },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+
       if (data.success) {
         setChats((prev) => prev.filter((chat) => chat._id !== chatId));
         await fetchUserChats();
         toast.success(data.message);
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
       toast.error(error.message);
     }
   };
+
   return (
     <div
       className={`${!isMenuOpen && "max-md:-translate-x-full"} flex flex-col h-screen min-w-72 p-5 border-r transition-all duration-300 shadow-sm ${
@@ -108,7 +116,7 @@ function Sidebar({ isMenuOpen, setIsMenuOpen }) {
               ? chat.message[0]?.content
                   ?.toLowerCase()
                   .includes(search.toLowerCase())
-              : chat.name?.toLowerCase().includes(search.toLowerCase()),
+              : chat.name?.toLowerCase().includes(search.toLowerCase())
           )
           .map((chat) => (
             <div
@@ -134,37 +142,17 @@ function Sidebar({ isMenuOpen, setIsMenuOpen }) {
                 </p>
               </div>
 
-              {/* Delete Icon */}
+              {/* ✅ FIXED DELETE BUTTON */}
               <span
                 className={`text-sm transition ${
                   isDark ? "text-gray-400" : "text-gray-500"
                 } hover:text-red-500`}
-                onClick={(e) =>
-                  toast.promise(deleteChat(e, chat._id), {
-                    loading: "Deleting...",
-                    success: "Deleted",
-                    error: "Error deleting",
-                  })
-                }
+                onClick={(e) => deleteChat(e, chat._id)}
               >
                 🗑️
               </span>
             </div>
           ))}
-      </div>
-
-      {/* Community */}
-      <div
-        onClick={() => {
-          navigate("/community");
-          setIsMenuOpen(false);
-        }}
-        className={`mt-3 flex items-center gap-2 p-2.5 rounded-lg cursor-pointer transition ${
-          isDark ? "hover:bg-[#2a2a2a]" : "hover:bg-gray-100"
-        }`}
-      >
-        <span>🖼️</span>
-        <p className="text-sm">Community Images</p>
       </div>
 
       {/* Credits */}
@@ -180,27 +168,13 @@ function Sidebar({ isMenuOpen, setIsMenuOpen }) {
         <span>💎</span>
         <div className="flex flex-col">
           <p className="text-sm">Credits: {user?.credits}</p>
-          <p className="text-xs text-gray-400">Purchase credits to use GPT</p>
+          <p className="text-xs text-gray-400">
+            Purchase credits to use GPT
+          </p>
         </div>
       </div>
 
-      {/* Theme Toggle */}
-      <button
-        onClick={() => {
-          const newTheme = isDark ? "light" : "dark";
-          setTheme(newTheme);
-          localStorage.setItem("theme", newTheme);
-          setIsMenuOpen(false);
-        }}
-        className={`mt-3 p-2.5 rounded-xl flex items-center gap-2 text-sm font-medium transition ${
-          isDark
-            ? "bg-[#2a2a2a] hover:bg-[#3a3a3a]"
-            : "bg-gray-200 hover:bg-gray-300"
-        }`}
-      >
-        <span>{isDark ? "🌞" : "🌙"}</span>
-        <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
-      </button>
+    
 
       {/* User */}
       <div
@@ -208,18 +182,17 @@ function Sidebar({ isMenuOpen, setIsMenuOpen }) {
           isDark ? "hover:bg-[#2a2a2a]" : "hover:bg-gray-100"
         }`}
       >
-        {/* Left: User Info */}
         <div className="flex items-center gap-3">
           <img
             className="w-8 h-8 rounded-full object-cover"
             src={assets.user_icon}
             alt=""
           />
-
-          <p className="text-sm">{user ? user.name : "Login Your Account"}</p>
+          <p className="text-sm">
+            {user ? user.name : "Login Your Account"}
+          </p>
         </div>
 
-        {/* Right: Logout Icon */}
         {user && (
           <img
             src={assets.logout_icon}
