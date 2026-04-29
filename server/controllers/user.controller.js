@@ -29,7 +29,7 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// api to login user
+
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
