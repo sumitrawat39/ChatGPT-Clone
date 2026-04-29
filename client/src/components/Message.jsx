@@ -7,20 +7,16 @@ import Prism from "prismjs";
 function Message({ message }) {
   const isUser = message.role === "user";
 
-  // 🔥 Safe content handling
   let safeContent = "";
 
   if (typeof message.content === "string") {
     safeContent = message.content;
   } else if (typeof message.content === "object") {
-    // fallback if API returns object
     safeContent = JSON.stringify(message.content);
   } else {
     safeContent = "";
   }
 
-  // 🔥 Debug (remove later)
-  console.log("Message content:", message.content, typeof message.content);
 
   useEffect(() => {
     Prism.highlightAll();
@@ -56,7 +52,7 @@ function Message({ message }) {
                 alt="chat"
               />
             ) : (
-              <div className="reset-tw break-words">
+              <div className="reset-tw wrap-break-word">
                 <Markdown>{safeContent}</Markdown>
               </div>
             )}
