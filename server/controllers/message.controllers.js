@@ -34,27 +34,55 @@ export const textMessageController = async (req, res) => {
       isImage: false,
     });
 
-    const { choices } = await openai.chat.completions.create({
+    const historyMessages = chat.messages.map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
+
+    // ✅ Set headers for streaming
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    const stream = await openai.chat.completions.create({
       model: "gemini-3-flash-preview",
       messages: [
         { role: "system", content: "You are a helpful assistant." },
-        { role: "user", content: prompt },
+        ...historyMessages,
       ],
+      stream: true, // ✅ enable streaming
     });
 
+    let fullReply = "";
+
+    // ✅ Send each chunk to frontend as it arrives
+    for await (const chunk of stream) {
+      const text = chunk.choices[0]?.delta?.content || "";
+      if (text) {
+        fullReply += text;
+        res.write(`data: ${text}\n\n`);
+      }
+    }
+
+    // ✅ Save complete reply to DB after streaming is done
     const reply = {
-      ...choices[0].message,
+      role: "assistant",
+      content: fullReply,
       timestamp: Date.now(),
       isImage: false,
     };
-    if (!chat.name || chat.messages.length === 0) {
+
+    if (!chat.name || chat.messages.length === 1) {
       chat.name = prompt;
     }
+
     chat.messages.push(reply);
     await chat.save();
     await User.updateOne({ _id: userId }, { $inc: { credits: -1 } });
 
-    res.json({ success: true, reply });
+    res.write("data: [DONE]\n\n"); // ✅ signal frontend that stream is complete
+    res.end();
+
   } catch (error) {
     return res.json({ success: false, message: error.message });
   }
