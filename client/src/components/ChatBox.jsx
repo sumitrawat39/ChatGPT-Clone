@@ -143,57 +143,105 @@ function ChatBox() {
   const [isPublished, setIsPublished] = useState(false);
 
   const onSubmit = async (e) => {
-    e.preventDefault();
-    if (!prompt.trim()) return;
-    if (!user) return toast("Login to send message");
-    if (!selectedChat?._id)
-      return toast.error("Please select or create a chat first");
-    const promptCopy = prompt;
-    if (!selectedChat?.message || selectedChat.message.length === 0) {
-      selectedChat.name = promptCopy;
-    }
-    try {
-      setLoading(true);
+  e.preventDefault();
+  if (!prompt.trim()) return;
+  if (!user) return toast("Login to send message");
+  if (!selectedChat?._id)
+    return toast.error("Please select or create a chat first");
 
-      setPrompt("");
+  const promptCopy = prompt;
+  if (!selectedChat?.message || selectedChat.message.length === 0) {
+    selectedChat.name = promptCopy;
+  }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "user",
-          content: promptCopy,
-          timestamp: Date.now(),
-          isImage: false,
-        },
-      ]);
+  try {
+    setLoading(true);
+    setPrompt("");
 
+    // Add user message
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "user",
+        content: promptCopy,
+        timestamp: Date.now(),
+        isImage: false,
+      },
+    ]);
+    if (mode === "image") {
       const { data } = await axios.post(
-        `/api/message/${mode}`,
-        {
-          chatId: selectedChat._id,
-          prompt: promptCopy,
-          isPublished,
-          isFirstMessage: messages.length === 0,
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
+        `/api/message/image`,
+        { chatId: selectedChat._id, prompt: promptCopy, isPublished },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       if (data.success) {
         setMessages((prev) => [...prev, data.reply]);
-        setUser((prev) => ({
-          ...prev,
-          credits: prev.credits - (mode === "image" ? 2 : 1),
-        }));
+        setUser((prev) => ({ ...prev, credits: prev.credits - 2 }));
       } else {
         toast.error(data.message);
         setPrompt(promptCopy);
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
-    } finally {
-      setLoading(false);
+      return;
     }
-  };
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content: "",
+        timestamp: Date.now(),
+        isImage: false,
+      },
+    ]);
+
+    const response = await fetch(
+      `${import.meta.env.VITE_SERVER_URL}/api/message/text`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ chatId: selectedChat._id, prompt: promptCopy }),
+      }
+    );
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value);
+      const lines = chunk.split("\n\n");
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const text = line.replace("data: ", "");
+          if (text === "[DONE]") break;
+          setMessages((prev) => {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+              ...updated[updated.length - 1],
+              content: updated[updated.length - 1].content + text,
+            };
+            return updated;
+          });
+        }
+      }
+    }
+
+    
+    setUser((prev) => ({ ...prev, credits: prev.credits - 1 }));
+
+  } catch (error) {
+    toast.error(error.response?.data?.message || error.message);
+    setPrompt(promptCopy);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     if (selectedChat) setMessages(selectedChat.messages || []);
@@ -226,7 +274,6 @@ function ChatBox() {
         {messages.map((message, index) => (
           <div key={index}>
             <Message message={message} />
-            {/* ✅ Action buttons below each assistant message */}
             <MessageActions message={message} />
           </div>
         ))}
